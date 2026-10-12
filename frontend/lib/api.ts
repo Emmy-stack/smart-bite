@@ -22,13 +22,44 @@ import type {
 } from "./types";
 
 /**
- * Base API URL read from environment variable with local fallback for development.
- * Supports NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_API_URL.
+ * Resolves the target URL for an API endpoint across different execution environments:
+ * 1. Server-side runtime (Route Handlers, Server Actions, SSR):
+ *    Uses the Vercel internal service binding injected into `process.env.BACKEND_URL`.
+ * 2. Explicit public URL:
+ *    Uses `process.env.NEXT_PUBLIC_API_BASE_URL` or `process.env.NEXT_PUBLIC_API_URL`.
+ * 3. Client-side browser in unified deployment (e.g. Vercel multi-service):
+ *    Uses relative `/api` path which matches top-level rewrite `/api/(.*)` -> backend service.
+ * 4. Local standalone development fallback:
+ *    Uses `http://localhost:8000`.
  */
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8000";
+export function resolveEndpointUrl(endpoint: string): string {
+  const cleanPath = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+  // 1. Server-side runtime: read Vercel service binding
+  if (typeof window === "undefined" && process.env.BACKEND_URL) {
+    const base = process.env.BACKEND_URL.replace(/\/$/, "");
+    return `${base}${cleanPath}`;
+  }
+
+  // 2. Explicit public environment variable
+  const explicitBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (explicitBase) {
+    const base = explicitBase.replace(/\/$/, "");
+    return `${base}${cleanPath}`;
+  }
+
+  // 3. Client-side browser in production / Vercel (same-origin rewrite)
+  if (typeof window !== "undefined") {
+    // If not running on local standalone Next.js dev port 3000
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      return `/api${cleanPath}`;
+    }
+  }
+
+  // 4. Standalone local development fallback
+  return `http://localhost:8000${cleanPath}`;
+}
 
 /**
  * Structured API Error containing HTTP status code and parsed backend error detail.
@@ -71,7 +102,7 @@ async function request<T>(
     reqHeaders["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = resolveEndpointUrl(endpoint);
 
   let res: Response;
   try {
@@ -82,7 +113,7 @@ async function request<T>(
     });
   } catch (networkError) {
     throw new ApiError(
-      `Network connection failed. Could not reach SmartBite backend at ${API_BASE_URL}.`,
+      `Network connection failed. Could not reach SmartBite backend at ${url}.`,
       0,
       networkError
     );

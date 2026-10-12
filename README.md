@@ -56,9 +56,26 @@ FoodRescueBackEnd/
 ├── .env.example                     # Backend template environment variables
 ├── .gitignore                       # Root ignore rules for Python and Node
 ├── package.json                     # Root proxy scripts (npm run dev/build from root)
+├── vercel.json                      # Vercel multi-service orchestration (services, bindings, rewrites)
 ├── requirements.txt                 # Pinned Python package dependencies
 └── README.md                        # Complete project documentation
 ```
+
+---
+
+## Vercel Multi-Service Deployment
+
+SmartBite deploys as a unified project on Vercel containing both services configured in `vercel.json`:
+
+- **Services**:
+  - `backend`: FastAPI Python service rooted at `.`.
+  - `frontend`: Next.js 16 service rooted at `frontend/`.
+- **Internal Service Binding**: The `frontend` service binds to `backend`, injecting the internal base URL into `process.env.BACKEND_URL` for server-side calls.
+- **Public Routing**:
+  - `/api/(.*)` $\rightarrow$ routes to `backend` with `path: "/$1"` (stripping `/api` so `/api/donations/` hits FastAPI's `/donations/`).
+  - `/docs` & `/openapi.json` $\rightarrow$ routes to `backend` for interactive API documentation.
+  - `/(.*)` $\rightarrow$ routes to `frontend` for Next.js web traffic.
+- **Local Testing**: Run `vercel dev` to test both services with local binding resolution.
 
 ---
 

@@ -79,17 +79,16 @@ cp .env.example .env.local
 
 ---
 
-## How to Configure the Frontend API Base URL
+## How the Frontend Resolves the API URL
 
-The API client reads the backend URL in `frontend/lib/api.ts`:
+The API client in `frontend/lib/api.ts` resolves backend endpoints through `resolveEndpointUrl()`:
 
-```typescript
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL 
-  || process.env.NEXT_PUBLIC_API_URL 
-  || "http://localhost:8000";
-```
+1. **Server-Side Runtime (SSR, Server Actions, Route Handlers)**: Reads the internal Vercel service binding from `process.env.BACKEND_URL` to route requests privately without crossing the public internet.
+2. **Client-Side in Production on Vercel**: Uses relative `/api` paths matching the top-level Vercel rewrite (`/api/(.*)` $\rightarrow$ backend service) so browser requests are same-origin without CORS overhead.
+3. **Explicit Override**: Honors `NEXT_PUBLIC_API_BASE_URL` or `NEXT_PUBLIC_API_URL` if set.
+4. **Local Development Fallback**: Defaults to `http://localhost:8000` when running standalone dev servers.
 
-To redirect the frontend to a remote or staged backend, simply update `.env.local`:
+To redirect the frontend to a remote or staged backend, set in `.env.local`:
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com
 ```
