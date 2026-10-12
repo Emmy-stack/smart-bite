@@ -1,0 +1,48 @@
+# Environment variables
+.env*
+*.env
+*.env.*
+*.env.local
+*.env.*.local
+frontend/.env*
+!.env.example
+!frontend/.env.example
+
+# Virtual environments
+venv
+venv/
+.venv
+.venv/
+env
+env/
+ENV
+ENV/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Frontend & Node dependencies and build artifacts
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+frontend/out/
+frontend/build/
+*.tsbuildinfo
+next-env.d.ts
