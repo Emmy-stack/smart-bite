@@ -57,7 +57,7 @@ app = FastAPI(
 )
 
 # Configure CORS
-raw_cors = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173")
+raw_cors = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://smart-bite-app-snowy.vercel.app")
 origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
 if not origins:
     origins = ["*"]
@@ -98,10 +98,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 # Root endpoint (Public)
 @app.get("/", summary="Root Endpoint")
+@app.get("/api", summary="Root API Endpoint")
 def read_root():
     return {"message": "SmartBite API is running"}
 
-# Register API routers
+# Register API routers with direct root paths (e.g. /health, /donations)
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(users_router)
@@ -110,3 +111,14 @@ app.include_router(ngos_router)
 app.include_router(donations_router)
 app.include_router(matches_router)
 app.include_router(forecasting_router)
+
+# Also register with /api prefix for multi-service rewrite compatibility (e.g. /api/health, /api/donations)
+app.include_router(health_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(users_router, prefix="/api")
+app.include_router(restaurants_router, prefix="/api")
+app.include_router(ngos_router, prefix="/api")
+app.include_router(donations_router, prefix="/api")
+app.include_router(matches_router, prefix="/api")
+app.include_router(forecasting_router, prefix="/api")
+

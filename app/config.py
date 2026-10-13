@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "SmartBite API"
     APP_ENV: str = "development"
     DATABASE_URL: str = ""
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://smart-bite-app-snowy.vercel.app"
     
     # Clerk configuration
     CLERK_PUBLISHABLE_KEY: Optional[str] = Field(default=None, alias="CLERK_PUBLISHABLE_KEY")
